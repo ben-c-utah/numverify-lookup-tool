@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 export default function CarrierLookup() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -10,34 +10,31 @@ export default function CarrierLookup() {
     setResult(null);
 
     try {
-      const accessKey = "YOUR_NUMVERIFY_API_KEY";
-      const proxyUrl = "http://localhost:3001/api/proxy";
-
-      const response = await fetch(proxyUrl, {
+      const response = await fetch("http://localhost:3001/api/proxy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          access_key: accessKey,
-          number: phoneNumber
-        })
+        body: JSON.stringify({ number: phoneNumber })
       });
 
       const data = await response.json();
+      console.log("API Response:", data);
 
       if (!data || typeof data !== "object") {
         throw new Error("Unexpected response format.");
       }
 
-      if (data.success === false) {
-        throw new Error(data.error?.info || "API Error");
-      }
+      if (data.success === false || data.error) {
+        console.error("NumVerify error:", data.error);
+        throw new Error(JSON.stringify(data.error, null, 2));
+      } 
+
 
       setResult(data);
     } catch (err) {
       console.error("Lookup error:", err);
-      setResult({ error: err.message || "Unknown error" });
+      setResult({ error: err.message || "Failed to fetch carrier information." });
     } finally {
       setLoading(false);
     }
@@ -45,8 +42,13 @@ export default function CarrierLookup() {
 
   const renderResult = () => {
     if (!result) return null;
+
     if (result.error) {
-      return <p style={{ color: "red" }}>Error: {result.error}</p>;
+      return (
+        <div style={{ color: "red", marginTop: "1rem" }}>
+          <strong>Error:</strong> {result.error}
+        </div>
+      );
     }
 
     return (

@@ -12,11 +12,13 @@ app.use(cors())
 app.use(express.json())
 
 app.post('/api/proxy', async (req, res) => {
-  const { access_key, number } = req.body
+  const { number } = req.body;
+const access_key = process.env.NUMVERIFY_KEY;
 
-  if (!access_key || !number) {
-    return res.status(400).json({ success: false, error: 'Missing required fields.' })
-  }
+if (!access_key || !number) {
+  return res.status(400).json({ success: false, error: "Missing required fields." });
+}
+
 
   try {
     const url = `http://apilayer.net/api/validate?access_key=${access_key}&number=${encodeURIComponent(number)}`
